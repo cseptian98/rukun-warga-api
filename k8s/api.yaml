@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rukun-warga-api-service
+spec:
+  selector:
+    app: rukun-warga-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rukun-warga-api-deployment
+  labels:
+    app: rukun-warga-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rukun-warga-api
+  template:
+    metadata:
+      labels:
+        app: rukun-warga-api
+    spec:
+      containers:
+      - name: rukun-warga-api
+        image: your-dockerhub-username/rukun-warga-api:latest # Change this to your actual image
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DATABASE_URL
+          value: "host=postgres-service user=postgres password=password dbname=rukunwarga port=5432 sslmode=disable"
+        # Optional: Add liveness/readiness probes here
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 10
